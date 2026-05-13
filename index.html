@@ -250,7 +250,8 @@ async function joinRoom(roomId, roomName, el) {
   const msgs = await api("GET", `/rooms/${roomId}/messages`);
   renderHistory(msgs);
 
-  const wsUrl = `ws://${location.host}/ws/${roomId}?token=${token}`;
+  const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${wsProtocol}//${location.host}/ws/${roomId}?token=${token}`;
   ws = new WebSocket(wsUrl);
   ws.onmessage = e => {
     const data = JSON.parse(e.data);
