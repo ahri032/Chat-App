@@ -1,0 +1,13 @@
+# 데이터베이스
+chat.db
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+*.pyo
+
+# 환경변수
+.env
+
+# Claude Code
+.claude/
