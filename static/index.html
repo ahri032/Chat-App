@@ -470,9 +470,10 @@ async function joinRoom(roomId, roomName, el) {
 
 async function leaveRoom() {
   if (!currentRoom) return;
-  try { await api("DELETE", `/rooms/${currentRoom}/leave`); } catch (_) {}
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send("__leave__");
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
   if (ws) { ws.onclose = null; ws.close(); ws = null; }
+  try { await api("DELETE", `/rooms/${currentRoom}/leave`); } catch (_) {}
   currentRoom = null;
   document.getElementById("messages").innerHTML = "";
   document.getElementById("room-header").classList.add("hidden");

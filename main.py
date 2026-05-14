@@ -293,6 +293,12 @@ async def websocket_endpoint(
             text = await ws.receive_text()
             if text == "__ping__":
                 continue
+            if text == "__leave__":
+                await manager.broadcast(room_id, {
+                    "type": "system",
+                    "content": f"{user.username}님이 퇴장했습니다.",
+                })
+                continue
             msg = Message(room_id=room_id, sender_id=user.id, content=text)
             db.add(msg)
             await db.commit()
@@ -305,7 +311,3 @@ async def websocket_endpoint(
             }, exclude_user=user.id)
     except WebSocketDisconnect:
         manager.disconnect(room_id, conn_id)
-        await manager.broadcast(room_id, {
-            "type": "system",
-            "content": f"{user.username}님이 퇴장했습니다.",
-        })
