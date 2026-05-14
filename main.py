@@ -89,6 +89,10 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 @app.get("/me")
 async def get_me(token: str, db: AsyncSession = Depends(get_db)):
     user = await get_current_user(token, db)
+    if not user.friend_code:
+        user.friend_code = await generate_friend_code(db)
+        await db.commit()
+        await db.refresh(user)
     return {"id": user.id, "username": user.username, "friend_code": user.friend_code}
 
 
