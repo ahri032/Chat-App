@@ -444,7 +444,7 @@ async function joinRoom(roomId, roomName, el) {
   document.getElementById("room-title").textContent = "# " + roomName;
   document.getElementById("room-header").classList.remove("hidden");
   await api("POST", `/rooms/${roomId}/join`);
-  if (ws) ws.close();
+  if (ws) { ws.onclose = null; ws.close(); }
   const msgs = await api("GET", `/rooms/${roomId}/messages`);
   renderHistory(msgs);
   const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -453,6 +453,10 @@ async function joinRoom(roomId, roomName, el) {
     const data = JSON.parse(e.data);
     if (data.type === "system") appendSystem(data.content);
     else appendMessage(data.sender, data.content, false);
+  };
+  ws.onerror = () => appendSystem("연결 오류가 발생했습니다.");
+  ws.onclose = e => {
+    if (currentRoom === roomId && e.code !== 1000) appendSystem("연결이 끊겼습니다. 방을 다시 클릭해 재연결하세요.");
   };
 }
 
@@ -493,7 +497,7 @@ function appendSystem(text) {
 function sendMsg() {
   const input = document.getElementById("msg-input");
   const text = input.value.trim();
-  if (!text || !ws) return;
+  if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
   ws.send(text);
   appendMessage("나", text, true);
   input.value = "";
