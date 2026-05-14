@@ -73,6 +73,15 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     return {"token": create_token(user.id, user.username)}
 
 
+@app.get("/users/search")
+async def search_users(q: str, token: str, db: AsyncSession = Depends(get_db)):
+    me = await get_current_user(token, db)
+    users = await db.scalars(
+        select(User).where(User.username.ilike(f"%{q}%"), User.id != me.id).limit(10)
+    )
+    return [{"id": u.id, "username": u.username} for u in users]
+
+
 @app.post("/rooms")
 async def create_room(
     body: CreateRoomRequest,
@@ -95,6 +104,16 @@ async def list_rooms(token: str, db: AsyncSession = Depends(get_db)):
         select(RoomMember).where(RoomMember.user_id == user.id).options(selectinload(RoomMember.room))
     )
     return [{"id": m.room.id, "name": m.room.name} for m in memberships]
+
+
+@app.get("/rooms/all")
+async def list_all_rooms(token: str, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(token, db)
+    all_rooms = await db.scalars(select(Room))
+    my_room_ids = {m.room_id for m in await db.scalars(
+        select(RoomMember).where(RoomMember.user_id == user.id)
+    )}
+    return [{"id": r.id, "name": r.name, "joined": r.id in my_room_ids} for r in all_rooms]
 
 
 @app.post("/rooms/{room_id}/join")
