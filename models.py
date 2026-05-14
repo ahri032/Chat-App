@@ -9,6 +9,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    friend_code: Mapped[str] = mapped_column(String(8), unique=True, nullable=False)
 
     messages: Mapped[list["Message"]] = relationship(back_populates="sender")
     memberships: Mapped[list["RoomMember"]] = relationship(back_populates="user")

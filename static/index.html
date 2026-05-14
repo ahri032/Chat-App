@@ -175,10 +175,11 @@
 <div id="tab-friends" class="tab-content">
   <div id="friends-inner">
     <div>
-      <div class="section-title">🔍 유저 검색</div>
+      <div class="section-title">➕ 친구 추가</div>
       <div id="user-search-box">
-        <input id="user-search-input" placeholder="아이디 검색..." onkeydown="if(event.key==='Enter') searchUser()" />
-        <button id="user-search-btn" onclick="searchUser()">검색</button>
+        <input id="friend-code-input" placeholder="친구 코드 8자리 입력" maxlength="8"
+          style="text-transform:uppercase" onkeydown="if(event.key==='Enter') addByCode()" />
+        <button id="user-search-btn" onclick="addByCode()">추가</button>
       </div>
       <div id="search-result"></div>
     </div>
@@ -202,6 +203,13 @@
   <div id="profile-inner">
     <div id="profile-avatar">👤</div>
     <div id="profile-username">-</div>
+    <div style="text-align:center">
+      <div style="font-size:12px;color:#888;margin-bottom:6px;">내 친구 코드</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="profile-friend-code" style="font-size:20px;font-weight:bold;letter-spacing:3px;color:#313244;">-</span>
+        <button onclick="copyCode()" style="padding:6px 12px;font-size:12px;background:#eee;color:#333;border:none;border-radius:6px;cursor:pointer;">복사</button>
+      </div>
+    </div>
     <input id="status-input" placeholder="상태 메시지를 입력하세요..." />
     <button id="logout-btn" onclick="logout()">로그아웃</button>
   </div>
@@ -559,31 +567,15 @@ async function rejectRequest(id, btn) {
   btn.closest(".request-item").remove();
 }
 
-async function searchUser() {
-  const query = document.getElementById("user-search-input").value.trim();
-  if (!query) return;
+async function addByCode() {
+  const code = document.getElementById("friend-code-input").value.trim().toUpperCase();
   const resultEl = document.getElementById("search-result");
-  resultEl.innerHTML = '<div class="empty-msg">검색 중...</div>';
+  if (code.length !== 8) { resultEl.innerHTML = '<div class="empty-msg" style="color:red">8자리 코드를 입력해주세요.</div>'; return; }
   try {
-    const users = await api("GET", `/users/search?q=${encodeURIComponent(query)}`);
-    resultEl.innerHTML = "";
-    if (users.length === 0) { resultEl.innerHTML = '<div class="empty-msg">검색 결과가 없습니다.</div>'; return; }
-    users.forEach(u => {
-      const item = document.createElement("div");
-      item.className = "user-item";
-      item.innerHTML = `<span>👤 ${escHtml(u.username)}</span><button onclick="sendFriendRequest(${u.id}, this)">친구 추가</button>`;
-      resultEl.appendChild(item);
-    });
+    const r = await api("POST", `/friends/request/by-code?code=${encodeURIComponent(code)}`);
+    resultEl.innerHTML = `<div class="empty-msg" style="color:green">✓ ${escHtml(r.username)}님에게 친구 요청을 보냈습니다.</div>`;
+    document.getElementById("friend-code-input").value = "";
   } catch (e) { resultEl.innerHTML = `<div class="empty-msg" style="color:red">${e.message}</div>`; }
-}
-
-async function sendFriendRequest(userId, btn) {
-  try {
-    await api("POST", `/friends/request/${userId}`);
-    btn.textContent = "요청 완료";
-    btn.disabled = true;
-    btn.style.background = "#ddd";
-  } catch (e) { btn.textContent = e.message; }
 }
 
 async function loadAllRooms() {
@@ -626,8 +618,20 @@ function renderFriendCheckList(containerId, excludeFilter) {
 }
 
 // ── 프로필 탭 ────────────────────────────────────
-function loadProfile() {
+async function loadProfile() {
   document.getElementById("profile-username").textContent = currentUsername || "-";
+  try {
+    const me = await api("GET", "/me");
+    document.getElementById("profile-friend-code").textContent = me.friend_code;
+  } catch (_) {}
+}
+
+function copyCode() {
+  const code = document.getElementById("profile-friend-code").textContent;
+  navigator.clipboard.writeText(code);
+  const btn = event.target;
+  btn.textContent = "복사됨!";
+  setTimeout(() => btn.textContent = "복사", 1500);
 }
 
 // ── 유틸 ─────────────────────────────────────────

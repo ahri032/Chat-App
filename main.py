@@ -1,3 +1,5 @@
+import random
+import string
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.staticfiles import StaticFiles
@@ -54,16 +56,26 @@ async def root():
     return FileResponse("static/index.html")
 
 
+async def generate_friend_code(db: AsyncSession) -> str:
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        code = "".join(random.choices(chars, k=8))
+        exists = await db.scalar(select(User).where(User.friend_code == code))
+        if not exists:
+            return code
+
+
 @app.post("/register")
 async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     existing = await db.scalar(select(User).where(User.username == body.username))
     if existing:
         raise HTTPException(status_code=400, detail="이미 존재하는 유저명입니다.")
-    user = User(username=body.username, hashed_password=hash_password(body.password))
+    code = await generate_friend_code(db)
+    user = User(username=body.username, hashed_password=hash_password(body.password), friend_code=code)
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    return {"token": create_token(user.id, user.username)}
+    return {"token": create_token(user.id, user.username), "friend_code": user.friend_code}
 
 
 @app.post("/login")
@@ -74,13 +86,31 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     return {"token": create_token(user.id, user.username)}
 
 
-@app.get("/users/search")
-async def search_users(q: str, token: str, db: AsyncSession = Depends(get_db)):
+@app.get("/me")
+async def get_me(token: str, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(token, db)
+    return {"id": user.id, "username": user.username, "friend_code": user.friend_code}
+
+
+@app.post("/friends/request/by-code")
+async def send_request_by_code(code: str, token: str, db: AsyncSession = Depends(get_db)):
     me = await get_current_user(token, db)
-    users = await db.scalars(
-        select(User).where(User.username.ilike(f"%{q}%"), User.id != me.id).limit(10)
+    target = await db.scalar(select(User).where(User.friend_code == code.upper()))
+    if not target:
+        raise HTTPException(status_code=404, detail="해당 친구 코드를 가진 유저가 없습니다.")
+    if target.id == me.id:
+        raise HTTPException(status_code=400, detail="자기 자신에게 요청할 수 없습니다.")
+    existing = await db.scalar(
+        select(Friendship).where(
+            ((Friendship.from_user_id == me.id) & (Friendship.to_user_id == target.id)) |
+            ((Friendship.from_user_id == target.id) & (Friendship.to_user_id == me.id))
+        )
     )
-    return [{"id": u.id, "username": u.username} for u in users]
+    if existing:
+        raise HTTPException(status_code=400, detail="이미 친구이거나 요청이 존재합니다.")
+    db.add(Friendship(from_user_id=me.id, to_user_id=target.id, status="pending"))
+    await db.commit()
+    return {"ok": True, "username": target.username}
 
 
 @app.post("/rooms")
@@ -190,22 +220,6 @@ async def invite_to_room(room_id: int, user_id: int, token: str, db: AsyncSessio
 
 # ── 친구 ──────────────────────────────────────────────────────
 
-@app.post("/friends/request/{to_user_id}")
-async def send_friend_request(to_user_id: int, token: str, db: AsyncSession = Depends(get_db)):
-    me = await get_current_user(token, db)
-    if me.id == to_user_id:
-        raise HTTPException(status_code=400, detail="자기 자신에게 요청할 수 없습니다.")
-    existing = await db.scalar(
-        select(Friendship).where(
-            ((Friendship.from_user_id == me.id) & (Friendship.to_user_id == to_user_id)) |
-            ((Friendship.from_user_id == to_user_id) & (Friendship.to_user_id == me.id))
-        )
-    )
-    if existing:
-        raise HTTPException(status_code=400, detail="이미 요청이 존재합니다.")
-    db.add(Friendship(from_user_id=me.id, to_user_id=to_user_id, status="pending"))
-    await db.commit()
-    return {"ok": True}
 
 
 @app.get("/friends/requests")
