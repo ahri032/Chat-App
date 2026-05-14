@@ -285,6 +285,7 @@ let currentRoom = null;
 let ws = null;
 let currentUsername = null;
 let friendsCache = [];
+let heartbeatInterval = null;
 
 (async () => {
   const savedToken = localStorage.getItem("token");
@@ -445,10 +446,16 @@ async function joinRoom(roomId, roomName, el) {
   document.getElementById("room-header").classList.remove("hidden");
   await api("POST", `/rooms/${roomId}/join`);
   if (ws) { ws.onclose = null; ws.close(); }
+  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
   const msgs = await api("GET", `/rooms/${roomId}/messages`);
   renderHistory(msgs);
   const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(`${wsProtocol}//${location.host}/ws/${roomId}?token=${token}`);
+  ws.onopen = () => {
+    heartbeatInterval = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send("__ping__");
+    }, 20000);
+  };
   ws.onmessage = e => {
     const data = JSON.parse(e.data);
     if (data.type === "system") appendSystem(data.content);
@@ -456,6 +463,7 @@ async function joinRoom(roomId, roomName, el) {
   };
   ws.onerror = () => appendSystem("연결 오류가 발생했습니다.");
   ws.onclose = e => {
+    if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
     if (currentRoom === roomId && e.code !== 1000) appendSystem("연결이 끊겼습니다. 방을 다시 클릭해 재연결하세요.");
   };
 }
@@ -463,7 +471,8 @@ async function joinRoom(roomId, roomName, el) {
 async function leaveRoom() {
   if (!currentRoom) return;
   try { await api("DELETE", `/rooms/${currentRoom}/leave`); } catch (_) {}
-  if (ws) { ws.close(); ws = null; }
+  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
+  if (ws) { ws.onclose = null; ws.close(); ws = null; }
   currentRoom = null;
   document.getElementById("messages").innerHTML = "";
   document.getElementById("room-header").classList.add("hidden");

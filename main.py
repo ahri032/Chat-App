@@ -287,19 +287,16 @@ async def websocket_endpoint(
 ):
     user = await get_current_user(token, db)
 
-    await manager.connect(room_id, user.id, user.username, ws)
+    conn_id = await manager.connect(room_id, user.id, user.username, ws)
     try:
         while True:
-            # 클라이언트가 보낸 텍스트를 기다린다 (블로킹)
             text = await ws.receive_text()
-
-            # DB에 저장
+            if text == "__ping__":
+                continue
             msg = Message(room_id=room_id, sender_id=user.id, content=text)
             db.add(msg)
             await db.commit()
             await db.refresh(msg)
-
-            # 보낸 사람 제외하고 나머지에게 브로드캐스트
             await manager.broadcast(room_id, {
                 "type": "message",
                 "sender": user.username,
@@ -307,7 +304,7 @@ async def websocket_endpoint(
                 "created_at": msg.created_at.isoformat(),
             }, exclude_user=user.id)
     except WebSocketDisconnect:
-        manager.disconnect(room_id, user.id)
+        manager.disconnect(room_id, conn_id)
         await manager.broadcast(room_id, {
             "type": "system",
             "content": f"{user.username}님이 퇴장했습니다.",
