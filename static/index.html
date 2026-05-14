@@ -11,17 +11,22 @@
   /* ── 상단 헤더 & 탭 ── */
   #app-header {
     display: flex; align-items: center; justify-content: space-between;
-    background: #1e1e2e; color: #cdd6f4; padding: 0 16px; height: 52px;
-    flex-shrink: 0;
+    background: #1e1e2e; color: #cdd6f4; padding: 0 16px; height: 52px; flex-shrink: 0;
   }
   #app-title { font-size: 16px; font-weight: bold; color: #89b4fa; }
   #tab-nav { display: flex; gap: 4px; }
   .tab-btn {
     padding: 8px 20px; border: none; border-radius: 8px; cursor: pointer;
-    background: transparent; color: #cdd6f4; font-size: 14px; font-weight: bold;
+    background: transparent; color: #cdd6f4; font-size: 14px; font-weight: bold; position: relative;
   }
   .tab-btn:hover { background: #313244; }
   .tab-btn.active { background: #313244; color: #89b4fa; }
+  .badge {
+    position: absolute; top: 4px; right: 4px; background: #f38ba8;
+    color: #fff; border-radius: 50%; width: 16px; height: 16px;
+    font-size: 10px; display: flex; align-items: center; justify-content: center;
+  }
+  .badge.hidden { display: none; }
 
   /* ── 탭 컨텐츠 ── */
   .tab-content { display: none; flex: 1; overflow: hidden; }
@@ -34,33 +39,29 @@
   }
   #sidebar h2 { font-size: 13px; color: #89b4fa; margin-bottom: 4px; }
   #room-list { flex: 1; overflow-y: auto; }
-  .room-item {
-    padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px;
-  }
+  .room-item { padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .room-item:hover, .room-item.active { background: #313244; }
   #sidebar-actions { border-top: 1px solid #313244; padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
-  .sidebar-btn {
-    width: 100%; padding: 8px; border: none; border-radius: 8px; cursor: pointer;
-    font-size: 13px; font-weight: bold;
-  }
+  .sidebar-btn { width: 100%; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
   .sidebar-btn.yellow { background: #fee500; color: #000; }
-  .sidebar-btn.dark { background: #313244; color: #cdd6f4; }
 
-  #chat-main { flex: 1; display: flex; flex-direction: column; }
+  #chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   #room-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 16px; border-bottom: 1px solid #ddd; background: #fff;
     font-weight: bold; font-size: 15px; flex-shrink: 0;
   }
   #room-header.hidden { display: none; }
+  #room-header-btns { display: flex; gap: 8px; }
+  #invite-btn {
+    background: #89b4fa; color: #fff; font-size: 12px;
+    padding: 6px 12px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer;
+  }
   #leave-btn {
     background: #ff6b6b; color: #fff; font-size: 12px;
     padding: 6px 12px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer;
   }
-  #messages {
-    flex: 1; overflow-y: auto; padding: 16px;
-    display: flex; flex-direction: column; gap: 6px;
-  }
+  #messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
   .msg-row { display: flex; flex-direction: column; max-width: 60%; }
   .msg-row.mine { align-self: flex-end; align-items: flex-end; }
   .msg-row.theirs { align-self: flex-start; }
@@ -69,98 +70,68 @@
   .mine .msg-bubble { background: #fee500; }
   .theirs .msg-bubble { background: #fff; }
   .system-msg { text-align: center; color: #aaa; font-size: 12px; }
-  #input-area {
-    display: flex; gap: 8px; padding: 12px; border-top: 1px solid #ddd;
-    background: #fff; flex-shrink: 0;
-  }
-  #msg-input {
-    flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;
-  }
+  #input-area { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #ddd; background: #fff; flex-shrink: 0; }
+  #msg-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
   #send-btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; background: #fee500; font-weight: bold; }
 
   /* ── 친구 탭 ── */
-  #tab-friends { flex-direction: column; background: #fff; }
-  #friends-inner { max-width: 600px; width: 100%; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; }
-  .section-title { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 8px; }
+  #tab-friends { flex-direction: column; background: #fff; overflow-y: auto; }
+  #friends-inner { max-width: 600px; width: 100%; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 24px; }
+  .section-title { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 10px; }
   #user-search-box { display: flex; gap: 8px; }
-  #user-search-input {
-    flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;
-  }
+  #user-search-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
   #user-search-btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; background: #fee500; font-weight: bold; }
   #search-result { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-  .user-item {
+  .user-item, .friend-item, .request-item, .browse-item {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 14px; border: 1px solid #eee; border-radius: 8px; font-size: 14px;
   }
-  .user-item button { padding: 5px 14px; border: none; border-radius: 6px; cursor: pointer; background: #fee500; font-size: 12px; font-weight: bold; }
-  #friend-list { display: flex; flex-direction: column; gap: 8px; }
-  .friend-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px; border: 1px solid #eee; border-radius: 8px; font-size: 14px;
+  .user-item button, .friend-item button, .request-item button, .browse-item button {
+    padding: 5px 14px; border: none; border-radius: 6px; cursor: pointer;
+    background: #fee500; font-size: 12px; font-weight: bold;
   }
-  .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #aaa; flex-shrink: 0; }
-  .online-dot.online { background: #4caf50; }
-  #all-rooms-list { display: flex; flex-direction: column; gap: 8px; }
-  .browse-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 14px; border: 1px solid #eee; border-radius: 8px; font-size: 14px;
-  }
-  .browse-item button { padding: 5px 14px; border: none; border-radius: 6px; cursor: pointer; background: #fee500; font-size: 12px; font-weight: bold; }
+  .request-item .btn-row { display: flex; gap: 6px; }
+  .request-item .btn-accept { background: #a6e3a1; }
+  .request-item .btn-reject { background: #f38ba8; }
   .browse-item button.joined { background: #ddd; color: #888; cursor: default; }
+  #friend-list, #request-list, #all-rooms-list { display: flex; flex-direction: column; gap: 8px; }
+  .empty-msg { color: #aaa; font-size: 13px; }
 
   /* ── 프로필 탭 ── */
   #tab-profile { flex-direction: column; background: #fff; align-items: center; justify-content: center; }
   #profile-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 300px; }
   #profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: #313244; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #cdd6f4; }
   #profile-username { font-size: 20px; font-weight: bold; }
-  #status-input {
-    width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;
-    font-size: 14px; text-align: center;
-  }
+  #status-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; text-align: center; }
   #logout-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; background: #ff6b6b; color: #fff; font-weight: bold; font-size: 15px; }
 
   /* ── 오버레이 공통 ── */
-  .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    display: flex; align-items: center; justify-content: center; z-index: 100;
-  }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
   .overlay.hidden { display: none; }
-  .modal-box {
-    background: #fff; padding: 32px; border-radius: 12px;
-    display: flex; flex-direction: column; gap: 12px; width: 300px;
-  }
-  .modal-box h2 { text-align: center; }
-  .modal-box input {
-    padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;
-  }
+  .modal-box { background: #fff; padding: 28px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; width: 320px; max-height: 80vh; }
+  .modal-box h2 { text-align: center; font-size: 17px; }
+  .modal-box input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
   .modal-box .row { display: flex; gap: 8px; }
   .modal-box .row button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; background: #fee500; font-weight: bold; }
   .modal-box .row button.secondary { background: #eee; color: #333; }
   .error-msg { color: red; font-size: 12px; text-align: center; }
-  .success-msg { color: green; font-size: 12px; text-align: center; }
+  .friend-check-list { overflow-y: auto; max-height: 200px; display: flex; flex-direction: column; gap: 6px; }
+  .friend-check-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #eee; border-radius: 8px; font-size: 14px; cursor: pointer; }
+  .friend-check-item:hover { background: #f9f9f9; }
+  .friend-check-item input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
 
   /* ── 모바일: 하단 탭 ── */
   @media (max-width: 600px) {
     #app-header { display: none; }
-    body { flex-direction: column; }
-    #tab-nav-bottom {
-      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
-      background: #1e1e2e; height: 56px; z-index: 50;
-    }
-    .tab-btn-bottom {
-      flex: 1; border: none; background: transparent; color: #cdd6f4;
-      font-size: 11px; cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 2px;
-    }
+    #tab-nav-bottom { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #1e1e2e; height: 56px; z-index: 50; }
+    .tab-btn-bottom { flex: 1; border: none; background: transparent; color: #cdd6f4; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; position: relative; }
     .tab-btn-bottom.active { color: #89b4fa; }
     .tab-btn-bottom span { font-size: 18px; }
     .tab-content.active { padding-bottom: 56px; }
-    #sidebar { width: 100%; max-width: 100%; }
+    #sidebar { width: 100%; }
     #tab-chat { flex-direction: column; }
   }
-  @media (min-width: 601px) {
-    #tab-nav-bottom { display: none; }
-  }
+  @media (min-width: 601px) { #tab-nav-bottom { display: none; } }
 </style>
 </head>
 <body>
@@ -170,7 +141,7 @@
   <div id="app-title">💬 ChatApp</div>
   <nav id="tab-nav">
     <button class="tab-btn active" onclick="switchTab('chat')">💬 채팅</button>
-    <button class="tab-btn" onclick="switchTab('friends')">👥 친구</button>
+    <button class="tab-btn" onclick="switchTab('friends')">👥 친구<span id="req-badge" class="badge hidden"></span></button>
     <button class="tab-btn" onclick="switchTab('profile')">👤 프로필</button>
   </nav>
 </header>
@@ -187,7 +158,10 @@
   <div id="chat-main">
     <div id="room-header" class="hidden">
       <span id="room-title"></span>
-      <button id="leave-btn" onclick="leaveRoom()">나가기</button>
+      <div id="room-header-btns">
+        <button id="invite-btn" onclick="openInvite()">+ 친구 초대</button>
+        <button id="leave-btn" onclick="leaveRoom()">나가기</button>
+      </div>
     </div>
     <div id="messages"></div>
     <div id="input-area">
@@ -201,19 +175,23 @@
 <div id="tab-friends" class="tab-content">
   <div id="friends-inner">
     <div>
-      <div class="section-title">👤 유저 검색</div>
+      <div class="section-title">🔍 유저 검색</div>
       <div id="user-search-box">
-        <input id="user-search-input" placeholder="아이디 검색..." />
+        <input id="user-search-input" placeholder="아이디 검색..." onkeydown="if(event.key==='Enter') searchUser()" />
         <button id="user-search-btn" onclick="searchUser()">검색</button>
       </div>
       <div id="search-result"></div>
     </div>
     <div>
-      <div class="section-title">👥 친구 목록</div>
-      <div id="friend-list"><div style="color:#aaa;font-size:13px;">아직 친구가 없습니다.</div></div>
+      <div class="section-title">📨 받은 친구 요청</div>
+      <div id="request-list"><div class="empty-msg">받은 요청이 없습니다.</div></div>
     </div>
     <div>
-      <div class="section-title">🔍 전체 채팅방</div>
+      <div class="section-title">👥 친구 목록</div>
+      <div id="friend-list"><div class="empty-msg">아직 친구가 없습니다.</div></div>
+    </div>
+    <div>
+      <div class="section-title">🏠 전체 채팅방</div>
       <div id="all-rooms-list"></div>
     </div>
   </div>
@@ -241,11 +219,26 @@
   <div class="modal-box">
     <h2>방 만들기</h2>
     <input id="room-name-input" placeholder="방 이름" onkeydown="if(event.key==='Enter') submitCreateRoom()" />
+    <div class="section-title" style="margin-bottom:4px;">친구 초대 (선택)</div>
+    <div id="create-friend-list" class="friend-check-list"></div>
     <div class="row">
       <button class="secondary" onclick="closeCreateRoom()">취소</button>
       <button onclick="submitCreateRoom()">만들기</button>
     </div>
     <div id="create-room-error" class="error-msg"></div>
+  </div>
+</div>
+
+<!-- 방 내 초대 모달 -->
+<div id="invite-overlay" class="overlay hidden">
+  <div class="modal-box">
+    <h2>친구 초대</h2>
+    <div id="invite-friend-list" class="friend-check-list"></div>
+    <div class="row">
+      <button class="secondary" onclick="closeInvite()">취소</button>
+      <button onclick="submitInvite()">초대</button>
+    </div>
+    <div id="invite-error" class="error-msg"></div>
   </div>
 </div>
 
@@ -283,8 +276,8 @@ let token = null;
 let currentRoom = null;
 let ws = null;
 let currentUsername = null;
+let friendsCache = [];
 
-// 페이지 로드 시 저장된 로그인 정보 복원
 (async () => {
   const savedToken = localStorage.getItem("token");
   const savedUsername = localStorage.getItem("username");
@@ -306,7 +299,7 @@ function switchTab(name) {
   document.querySelectorAll(".tab-btn, .tab-btn-bottom").forEach(el => el.classList.remove("active"));
   document.getElementById(`tab-${name}`).classList.add("active");
   document.querySelectorAll(`[onclick="switchTab('${name}')"]`).forEach(el => el.classList.add("active"));
-  if (name === "friends") loadAllRooms();
+  if (name === "friends") loadFriendsTab();
   if (name === "profile") loadProfile();
 }
 
@@ -339,15 +332,10 @@ async function doLogin() {
 
 function openRegister() {
   document.getElementById("register-error").textContent = "";
-  document.getElementById("reg-un").value = "";
-  document.getElementById("reg-pw").value = "";
-  document.getElementById("reg-pw2").value = "";
+  ["reg-un","reg-pw","reg-pw2"].forEach(id => document.getElementById(id).value = "");
   document.getElementById("register-overlay").classList.remove("hidden");
 }
-
-function closeRegister() {
-  document.getElementById("register-overlay").classList.add("hidden");
-}
+function closeRegister() { document.getElementById("register-overlay").classList.add("hidden"); }
 
 async function doRegister() {
   const username = document.getElementById("reg-un").value.trim();
@@ -363,9 +351,7 @@ async function doRegister() {
     document.getElementById("pw").value = "";
     document.getElementById("login-error").textContent = "가입 완료! 로그인해주세요.";
     document.getElementById("login-error").style.color = "green";
-  } catch (e) {
-    errEl.textContent = e.message;
-  }
+  } catch (e) { errEl.textContent = e.message; }
 }
 
 async function onLoginSuccess(t, username) {
@@ -375,13 +361,12 @@ async function onLoginSuccess(t, username) {
   localStorage.setItem("username", username);
   document.getElementById("overlay").classList.add("hidden");
   await loadRooms();
+  pollRequests();
 }
 
 function logout() {
-  token = null;
-  currentUsername = null;
-  localStorage.removeItem("token");
-  localStorage.removeItem("username");
+  token = null; currentUsername = null; friendsCache = [];
+  localStorage.removeItem("token"); localStorage.removeItem("username");
   if (ws) { ws.close(); ws = null; }
   currentRoom = null;
   document.getElementById("messages").innerHTML = "";
@@ -392,6 +377,18 @@ function logout() {
   document.getElementById("login-error").style.color = "red";
   document.getElementById("overlay").classList.remove("hidden");
   switchTab("chat");
+}
+
+// ── 친구 요청 배지 폴링 ──────────────────────────
+async function pollRequests() {
+  if (!token) return;
+  try {
+    const reqs = await api("GET", "/friends/requests");
+    const badge = document.getElementById("req-badge");
+    if (reqs.length > 0) { badge.textContent = reqs.length; badge.classList.remove("hidden"); }
+    else badge.classList.add("hidden");
+  } catch (_) {}
+  setTimeout(pollRequests, 15000);
 }
 
 // ── 채팅방 ────────────────────────────────────────
@@ -411,24 +408,21 @@ async function loadRooms() {
 function createRoom() {
   document.getElementById("room-name-input").value = "";
   document.getElementById("create-room-error").textContent = "";
+  renderFriendCheckList("create-friend-list", []);
   document.getElementById("create-room-overlay").classList.remove("hidden");
   setTimeout(() => document.getElementById("room-name-input").focus(), 50);
 }
-
-function closeCreateRoom() {
-  document.getElementById("create-room-overlay").classList.add("hidden");
-}
+function closeCreateRoom() { document.getElementById("create-room-overlay").classList.add("hidden"); }
 
 async function submitCreateRoom() {
   const name = document.getElementById("room-name-input").value.trim();
   if (!name) { document.getElementById("create-room-error").textContent = "방 이름을 입력해주세요."; return; }
+  const checked = [...document.querySelectorAll("#create-friend-list input:checked")].map(el => parseInt(el.value));
   try {
-    await api("POST", "/rooms", { name });
+    await api("POST", "/rooms", { name, invite_user_ids: checked });
     closeCreateRoom();
     await loadRooms();
-  } catch (e) {
-    document.getElementById("create-room-error").textContent = e.message;
-  }
+  } catch (e) { document.getElementById("create-room-error").textContent = e.message; }
 }
 
 async function joinRoom(roomId, roomName, el) {
@@ -443,8 +437,7 @@ async function joinRoom(roomId, roomName, el) {
   const msgs = await api("GET", `/rooms/${roomId}/messages`);
   renderHistory(msgs);
   const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${wsProtocol}//${location.host}/ws/${roomId}?token=${token}`;
-  ws = new WebSocket(wsUrl);
+  ws = new WebSocket(`${wsProtocol}//${location.host}/ws/${roomId}?token=${token}`);
   ws.onmessage = e => {
     const data = JSON.parse(e.data);
     if (data.type === "system") appendSystem(data.content);
@@ -495,62 +488,141 @@ function sendMsg() {
   input.value = "";
 }
 
+// ── 방 내 초대 ────────────────────────────────────
+async function openInvite() {
+  document.getElementById("invite-error").textContent = "";
+  const members = await api("GET", `/rooms/${currentRoom}/members`);
+  const memberIds = new Set(members.map(m => m.user_id));
+  const notInRoom = friendsCache.filter(f => !memberIds.has(f.id));
+  renderFriendCheckList("invite-friend-list", notInRoom);
+  document.getElementById("invite-overlay").classList.remove("hidden");
+}
+function closeInvite() { document.getElementById("invite-overlay").classList.add("hidden"); }
+
+async function submitInvite() {
+  const checked = [...document.querySelectorAll("#invite-friend-list input:checked")].map(el => parseInt(el.value));
+  if (checked.length === 0) { document.getElementById("invite-error").textContent = "초대할 친구를 선택해주세요."; return; }
+  try {
+    await Promise.all(checked.map(uid => api("POST", `/rooms/${currentRoom}/invite/${uid}`)));
+    closeInvite();
+  } catch (e) { document.getElementById("invite-error").textContent = e.message; }
+}
+
 // ── 친구 탭 ──────────────────────────────────────
+async function loadFriendsTab() {
+  await Promise.all([loadFriends(), loadRequests(), loadAllRooms()]);
+}
+
+async function loadFriends() {
+  const friends = await api("GET", "/friends");
+  friendsCache = friends;
+  const el = document.getElementById("friend-list");
+  if (friends.length === 0) { el.innerHTML = '<div class="empty-msg">아직 친구가 없습니다.</div>'; return; }
+  el.innerHTML = "";
+  friends.forEach(f => {
+    const item = document.createElement("div");
+    item.className = "friend-item";
+    item.innerHTML = `<span>👤 ${escHtml(f.username)}</span>`;
+    el.appendChild(item);
+  });
+}
+
+async function loadRequests() {
+  const reqs = await api("GET", "/friends/requests");
+  const badge = document.getElementById("req-badge");
+  if (reqs.length > 0) { badge.textContent = reqs.length; badge.classList.remove("hidden"); }
+  else badge.classList.add("hidden");
+  const el = document.getElementById("request-list");
+  if (reqs.length === 0) { el.innerHTML = '<div class="empty-msg">받은 요청이 없습니다.</div>'; return; }
+  el.innerHTML = "";
+  reqs.forEach(r => {
+    const item = document.createElement("div");
+    item.className = "request-item";
+    item.innerHTML = `
+      <span>👤 ${escHtml(r.username)}</span>
+      <div class="btn-row">
+        <button class="btn-accept" onclick="acceptRequest(${r.id}, this)">수락</button>
+        <button class="btn-reject" onclick="rejectRequest(${r.id}, this)">거절</button>
+      </div>`;
+    el.appendChild(item);
+  });
+}
+
+async function acceptRequest(id, btn) {
+  await api("POST", `/friends/accept/${id}`);
+  btn.closest(".request-item").remove();
+  await loadFriends();
+}
+
+async function rejectRequest(id, btn) {
+  await api("POST", `/friends/reject/${id}`);
+  btn.closest(".request-item").remove();
+}
+
 async function searchUser() {
   const query = document.getElementById("user-search-input").value.trim();
   if (!query) return;
   const resultEl = document.getElementById("search-result");
-  resultEl.innerHTML = "<div style='color:#aaa;font-size:13px;'>검색 중...</div>";
+  resultEl.innerHTML = '<div class="empty-msg">검색 중...</div>';
   try {
     const users = await api("GET", `/users/search?q=${encodeURIComponent(query)}`);
     resultEl.innerHTML = "";
-    if (users.length === 0) {
-      resultEl.innerHTML = "<div style='color:#aaa;font-size:13px;'>검색 결과가 없습니다.</div>";
-      return;
-    }
+    if (users.length === 0) { resultEl.innerHTML = '<div class="empty-msg">검색 결과가 없습니다.</div>'; return; }
     users.forEach(u => {
       const item = document.createElement("div");
       item.className = "user-item";
-      item.innerHTML = `<span>👤 ${escHtml(u.username)}</span><button onclick="addFriend('${escHtml(u.username)}', this)">친구 추가</button>`;
+      item.innerHTML = `<span>👤 ${escHtml(u.username)}</span><button onclick="sendFriendRequest(${u.id}, this)">친구 추가</button>`;
       resultEl.appendChild(item);
     });
-  } catch (e) {
-    resultEl.innerHTML = `<div style='color:red;font-size:13px;'>${e.message}</div>`;
-  }
+  } catch (e) { resultEl.innerHTML = `<div class="empty-msg" style="color:red">${e.message}</div>`; }
 }
 
-async function addFriend(username, btn) {
-  btn.textContent = "추가됨";
-  btn.disabled = true;
-  btn.style.background = "#ddd";
+async function sendFriendRequest(userId, btn) {
+  try {
+    await api("POST", `/friends/request/${userId}`);
+    btn.textContent = "요청 완료";
+    btn.disabled = true;
+    btn.style.background = "#ddd";
+  } catch (e) { btn.textContent = e.message; }
 }
 
 async function loadAllRooms() {
   const rooms = await api("GET", "/rooms/all");
   const list = document.getElementById("all-rooms-list");
+  if (rooms.length === 0) { list.innerHTML = '<div class="empty-msg">개설된 방이 없습니다.</div>'; return; }
   list.innerHTML = "";
-  if (rooms.length === 0) {
-    list.innerHTML = "<div style='color:#aaa;font-size:13px;'>개설된 방이 없습니다.</div>";
-    return;
-  }
   rooms.forEach(r => {
     const item = document.createElement("div");
     item.className = "browse-item";
     item.innerHTML = `
       <span># ${escHtml(r.name)}</span>
-      <button class="${r.joined ? 'joined' : ''}" onclick="browseJoin(${r.id}, '${escHtml(r.name)}', this)" ${r.joined ? 'disabled' : ''}>
+      <button class="${r.joined ? 'joined' : ''}" onclick="browseJoin(${r.id}, this)" ${r.joined ? 'disabled' : ''}>
         ${r.joined ? '참가중' : '참가'}
       </button>`;
     list.appendChild(item);
   });
 }
 
-async function browseJoin(roomId, roomName, btn) {
+async function browseJoin(roomId, btn) {
   await api("POST", `/rooms/${roomId}/join`);
-  btn.textContent = "참가중";
-  btn.classList.add("joined");
-  btn.disabled = true;
+  btn.textContent = "참가중"; btn.classList.add("joined"); btn.disabled = true;
   await loadRooms();
+}
+
+// ── 친구 체크리스트 렌더 ─────────────────────────
+function renderFriendCheckList(containerId, excludeFilter) {
+  const container = document.getElementById(containerId);
+  const list = excludeFilter.length > 0 ? excludeFilter : friendsCache;
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-msg">초대할 친구가 없습니다.</div>'; return;
+  }
+  container.innerHTML = "";
+  list.forEach(f => {
+    const label = document.createElement("label");
+    label.className = "friend-check-item";
+    label.innerHTML = `<input type="checkbox" value="${f.id}" /><span>👤 ${escHtml(f.username)}</span>`;
+    container.appendChild(label);
+  });
 }
 
 // ── 프로필 탭 ────────────────────────────────────

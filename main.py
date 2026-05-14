@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 
 from database import get_db, init_db
-from models import User, Room, RoomMember, Message
+from models import User, Room, RoomMember, Message, Friendship
 from auth import hash_password, verify_password, create_token, decode_token
 from connection_manager import manager
 
@@ -35,6 +35,7 @@ class LoginRequest(BaseModel):
 
 class CreateRoomRequest(BaseModel):
     name: str
+    invite_user_ids: list[int] = []
 
 
 # ── 인증 헬퍼 ─────────────────────────────────────────────────
@@ -93,6 +94,9 @@ async def create_room(
     db.add(room)
     await db.flush()
     db.add(RoomMember(room_id=room.id, user_id=user.id))
+    for uid in body.invite_user_ids:
+        if uid != user.id:
+            db.add(RoomMember(room_id=room.id, user_id=uid))
     await db.commit()
     return {"room_id": room.id, "name": room.name}
 
@@ -140,6 +144,15 @@ async def leave_room(room_id: int, token: str, db: AsyncSession = Depends(get_db
     return {"ok": True}
 
 
+@app.get("/rooms/{room_id}/members")
+async def get_room_members(room_id: int, token: str, db: AsyncSession = Depends(get_db)):
+    await get_current_user(token, db)
+    members = await db.scalars(
+        select(RoomMember).where(RoomMember.room_id == room_id).options(selectinload(RoomMember.user))
+    )
+    return [{"user_id": m.user_id, "username": m.user.username} for m in members]
+
+
 @app.get("/rooms/{room_id}/messages")
 async def get_messages(room_id: int, token: str, db: AsyncSession = Depends(get_db)):
     await get_current_user(token, db)
@@ -159,6 +172,91 @@ async def get_messages(room_id: int, token: str, db: AsyncSession = Depends(get_
         }
         for m in msgs
     ]
+
+
+# ── 방 초대 ───────────────────────────────────────────────────
+
+@app.post("/rooms/{room_id}/invite/{user_id}")
+async def invite_to_room(room_id: int, user_id: int, token: str, db: AsyncSession = Depends(get_db)):
+    await get_current_user(token, db)
+    existing = await db.scalar(
+        select(RoomMember).where(RoomMember.room_id == room_id, RoomMember.user_id == user_id)
+    )
+    if not existing:
+        db.add(RoomMember(room_id=room_id, user_id=user_id))
+        await db.commit()
+    return {"ok": True}
+
+
+# ── 친구 ──────────────────────────────────────────────────────
+
+@app.post("/friends/request/{to_user_id}")
+async def send_friend_request(to_user_id: int, token: str, db: AsyncSession = Depends(get_db)):
+    me = await get_current_user(token, db)
+    if me.id == to_user_id:
+        raise HTTPException(status_code=400, detail="자기 자신에게 요청할 수 없습니다.")
+    existing = await db.scalar(
+        select(Friendship).where(
+            ((Friendship.from_user_id == me.id) & (Friendship.to_user_id == to_user_id)) |
+            ((Friendship.from_user_id == to_user_id) & (Friendship.to_user_id == me.id))
+        )
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="이미 요청이 존재합니다.")
+    db.add(Friendship(from_user_id=me.id, to_user_id=to_user_id, status="pending"))
+    await db.commit()
+    return {"ok": True}
+
+
+@app.get("/friends/requests")
+async def get_friend_requests(token: str, db: AsyncSession = Depends(get_db)):
+    me = await get_current_user(token, db)
+    reqs = await db.scalars(
+        select(Friendship)
+        .where(Friendship.to_user_id == me.id, Friendship.status == "pending")
+        .options(selectinload(Friendship.from_user))
+    )
+    return [{"id": r.id, "from_user_id": r.from_user_id, "username": r.from_user.username} for r in reqs]
+
+
+@app.post("/friends/accept/{friendship_id}")
+async def accept_friend(friendship_id: int, token: str, db: AsyncSession = Depends(get_db)):
+    me = await get_current_user(token, db)
+    req = await db.get(Friendship, friendship_id)
+    if not req or req.to_user_id != me.id:
+        raise HTTPException(status_code=404, detail="요청을 찾을 수 없습니다.")
+    req.status = "accepted"
+    await db.commit()
+    return {"ok": True}
+
+
+@app.post("/friends/reject/{friendship_id}")
+async def reject_friend(friendship_id: int, token: str, db: AsyncSession = Depends(get_db)):
+    me = await get_current_user(token, db)
+    req = await db.get(Friendship, friendship_id)
+    if not req or req.to_user_id != me.id:
+        raise HTTPException(status_code=404, detail="요청을 찾을 수 없습니다.")
+    req.status = "rejected"
+    await db.commit()
+    return {"ok": True}
+
+
+@app.get("/friends")
+async def get_friends(token: str, db: AsyncSession = Depends(get_db)):
+    me = await get_current_user(token, db)
+    rows = await db.scalars(
+        select(Friendship)
+        .where(
+            ((Friendship.from_user_id == me.id) | (Friendship.to_user_id == me.id)),
+            Friendship.status == "accepted"
+        )
+        .options(selectinload(Friendship.from_user), selectinload(Friendship.to_user))
+    )
+    friends = []
+    for r in rows:
+        friend = r.to_user if r.from_user_id == me.id else r.from_user
+        friends.append({"id": friend.id, "username": friend.username})
+    return friends
 
 
 # ── WebSocket ─────────────────────────────────────────────────

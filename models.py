@@ -35,6 +35,18 @@ class RoomMember(Base):
     user: Mapped["User"] = relationship(back_populates="memberships")
 
 
+class Friendship(Base):
+    __tablename__ = "friendships"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending/accepted/rejected
+
+    from_user: Mapped["User"] = relationship(foreign_keys=[from_user_id])
+    to_user: Mapped["User"] = relationship(foreign_keys=[to_user_id])
+
+
 class Message(Base):
     __tablename__ = "messages"
 
