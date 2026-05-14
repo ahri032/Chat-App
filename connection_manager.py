@@ -36,7 +36,7 @@ class ConnectionManager:
         if room_id not in self.rooms:
             return
         dead = []
-        for conn_id, conn in self.rooms[room_id].items():
+        for conn_id, conn in list(self.rooms[room_id].items()):
             if conn_id == exclude_conn:
                 continue
             if exclude_user is not None and conn["user_id"] == exclude_user:
