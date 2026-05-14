@@ -221,7 +221,6 @@ async def invite_to_room(room_id: int, user_id: int, token: str, db: AsyncSessio
 # ── 친구 ──────────────────────────────────────────────────────
 
 
-
 @app.get("/friends/requests")
 async def get_friend_requests(token: str, db: AsyncSession = Depends(get_db)):
     me = await get_current_user(token, db)

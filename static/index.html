@@ -413,10 +413,13 @@ async function loadRooms() {
   });
 }
 
-function createRoom() {
+async function createRoom() {
   document.getElementById("room-name-input").value = "";
   document.getElementById("create-room-error").textContent = "";
-  renderFriendCheckList("create-friend-list", []);
+  if (friendsCache.length === 0) {
+    try { friendsCache = await api("GET", "/friends"); } catch (_) {}
+  }
+  renderFriendCheckList("create-friend-list", friendsCache);
   document.getElementById("create-room-overlay").classList.remove("hidden");
   setTimeout(() => document.getElementById("room-name-input").focus(), 50);
 }

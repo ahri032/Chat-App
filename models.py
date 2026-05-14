@@ -9,7 +9,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    friend_code: Mapped[str] = mapped_column(String(8), unique=True, nullable=False)
+    friend_code: Mapped[str | None] = mapped_column(String(8), unique=True, nullable=True)
 
     messages: Mapped[list["Message"]] = relationship(back_populates="sender")
     memberships: Mapped[list["RoomMember"]] = relationship(back_populates="user")
@@ -42,7 +42,7 @@ class Friendship(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     from_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending/accepted/rejected
+    status: Mapped[str] = mapped_column(String(20), default="pending", server_default="pending")
 
     from_user: Mapped["User"] = relationship(foreign_keys=[from_user_id])
     to_user: Mapped["User"] = relationship(foreign_keys=[to_user_id])
